@@ -17,6 +17,11 @@ public class FPSPlayerController : MonoBehaviour
     Vector3 moveDirection = Vector3.zero;
     float rotationX = 0;
 
+    float originalHeight;
+    float crouchHeight = 0.5f;
+    bool isCrouching = false;
+    public float crouchSpeed = 3.0f;
+
     [HideInInspector]
     public bool canMove = true;
 
@@ -27,6 +32,9 @@ public class FPSPlayerController : MonoBehaviour
         // Lock cursor
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        // Save the original height of the character controller
+        originalHeight = characterController.height;
     }
 
     void Update()
@@ -36,10 +44,26 @@ public class FPSPlayerController : MonoBehaviour
         Vector3 right = transform.TransformDirection(Vector3.right);
         // Press Left Shift to run
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        bool isCrouchKeyPressed = Input.GetKey(KeyCode.C);
         float curSpeedX = canMove ? (isRunning ? runningSpeed : walkingSpeed) * Input.GetAxis("Vertical") : 0;
         float curSpeedY = canMove ? (isRunning ? runningSpeed : walkingSpeed) * Input.GetAxis("Horizontal") : 0;
         float movementDirectionY = moveDirection.y;
         moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+
+        if (isCrouchKeyPressed && !isCrouching)
+        {
+            // Crouch
+            isCrouching = true;
+            characterController.height = crouchHeight;
+            curSpeedX = crouchSpeed * Input.GetAxis("Vertical");
+            curSpeedY = crouchSpeed * Input.GetAxis("Horizontal");
+        }
+        else if (!isCrouchKeyPressed && isCrouching)
+        {
+            // Stand up
+            isCrouching = false;
+            characterController.height = originalHeight;
+        }
 
         if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
         {
